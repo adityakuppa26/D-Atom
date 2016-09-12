@@ -14,7 +14,8 @@ def compress(file_name,path='./'):
   elif file_name.lower().endswith('.png'):
     pass
   elif file_name.lower().endswith('.datom'):
-    pass
+    print('This file is already compressed')
+    return -2
   else :
     print('This file format is not supported')
     return -1
