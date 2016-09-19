@@ -7,7 +7,7 @@ def compress(file_name,path='./'):
    file=open("file_name.txt","r")
    text =file.read()
    code =  base64.b64encode(zlib.compress(text,9))
-   with open("file_name.zlib","wb") as myfile:
+   with open("compressed_file_name.zlib","wb") as myfile:
        myfile.write(code)
   elif file_name.lower().endswith('.mp3'):
     pass
@@ -23,7 +23,17 @@ def compress(file_name,path='./'):
   else :
     print('This file format is not supported')
     return -1
-
+def decompress(file_name,path='./'):
+    if file_name.lower().endswith('.zlib'):
+        pass
+    else:
+        print('This file format is not supported')
+        return -1
 o=input('Select the desired option \n 1.Compress a file. \n 2.Decompress a file. \n 3.Check if the file is already compressed. \n ')
 p=raw_input('Please give the file path \n')
-result=compress(filename_path(p),p)
+if o==1:
+    result=compress(filename_path(p),p)
+elif o==2:
+    result=decompress(file_path(p),p)
+else:
+    result=compress(filename_path(p),p)
