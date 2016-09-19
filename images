@@ -1,0 +1,452 @@
+Twitter Github RSS
+
+Softwariness
+Crafting code carefully
+Skip to content
+Home
+About
+Contact
+ Examples Using Python to Reduce JPEG and PNG Image File Sizes Without Loss of Quality
+Using Python to Reduce JPEG and PNG Image File Sizes Without Loss of Quality
+ David January 3, 2015Examples
+If you run a website, you’ll want to keep the size of image files down to reduce page load times and to reduce bandwidth consumption.
+
+This example shows how to automatically reduce PNG and JPEG image sizes without loss of quality using the Python Imaging Library (PIL).
+
+This example needs Python 2.7 or later to run.
+
+Python
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+from PIL import Image, ImageFile
+from sys import exit, stderr
+from os.path import getsize, isfile, isdir, join
+from os import remove, rename, walk, stat
+from stat import S_IWRITE
+from shutil import move
+from argparse import ArgumentParser
+from abc import ABCMeta, abstractmethod
+ 
+class ProcessBase:
+    """Abstract base class for file processors."""
+    __metaclass__ = ABCMeta
+ 
+    def __init__(self):
+        self.extensions = []
+        self.backupextension = 'compressimages-backup'
+ 
+    @abstractmethod
+    def processfile(self, filename):
+        """Abstract method which carries out the process on the specified file.
+        Returns True if successful, False otherwise."""
+        pass
+ 
+    def processdir(self, path):
+        """Recursively processes files in the specified directory matching
+        the self.extensions list (case-insensitively)."""
+ 
+        filecount = 0 # Number of files successfully updated
+ 
+        for root, dirs, files in walk(path):
+            for file in files:
+                # Check file extensions against allowed list
+                lowercasefile = file.lower()
+                matches = False
+                for ext in self.extensions:
+                    if lowercasefile.endswith('.' + ext):
+                        matches = True
+                        break
+                if matches:
+                    # File has eligible extension, so process
+                    fullpath = join(root, file)
+                    if self.processfile(fullpath):
+                        filecount = filecount + 1
+        return filecount
+ 
+class CompressImage(ProcessBase):
+    """Processor which attempts to reduce image file size."""
+    def __init__(self):
+        ProcessBase.__init__(self)
+        self.extensions = ['jpg', 'jpeg', 'png']
+ 
+    def processfile(self, filename):
+        """Renames the specified image to a backup path,
+        and writes out the image again with optimal settings."""
+        try:
+            # Skip read-only files
+            if (not stat(filename)[0] & S_IWRITE):
+                print 'Ignoring read-only file "' + filename + '".'
+                return False
+            
+            # Create a backup
+            backupname = filename + '.' + self.backupextension
+ 
+            if isfile(backupname):
+                print 'Ignoring file "' + filename + '" for which existing backup file is present.'
+                return False
+ 
+            rename(filename, backupname)
+        except Exception as e:
+            stderr.write('Skipping file "' + filename + '" for which backup cannot be made: ' + str(e) + '\n')
+            return False
+ 
+        ok = False
+ 
+        try:
+            # Open the image
+            with open(backupname, 'rb') as file:
+                img = Image.open(file)
+ 
+                # Check that it's a supported format
+                format = str(img.format)
+                if format != 'PNG' and format != 'JPEG':
+                    print 'Ignoring file "' + filename + '" with unsupported format ' + format
+                    return False
+ 
+                # This line avoids problems that can arise saving larger JPEG files with PIL
+                ImageFile.MAXBLOCK = img.size[0] * img.size[1]
+                
+                # The 'quality' option is ignored for PNG files
+                img.save(filename, quality=90, optimize=True)
+ 
+            # Check that we've actually made it smaller
+            origsize = getsize(backupname)
+            newsize = getsize(filename)
+ 
+            if newsize >= origsize:
+                print 'Cannot further compress "' + filename + '".'
+                return False
+ 
+            # Successful compression
+            ok = True
+        except Exception as e:
+            stderr.write('Failure whilst processing "' + filename + '": ' + str(e) + '\n')
+        finally:
+            if not ok:
+                try:
+                    move(backupname, filename)
+                except Exception as e:
+                    stderr.write('ERROR: could not restore backup file for "' + filename + '": ' + str(e) + '\n')
+ 
+        return ok
+ 
+class RestoreBackupImage(ProcessBase):
+    """Processor which restores image from backup."""
+ 
+    def __init__(self):
+        ProcessBase.__init__(self)
+        self.extensions = [self.backupextension]
+ 
+    def processfile(self, filename):
+        """Moves the backup file back to its original name."""
+        try:
+            move(filename, filename[: -(len(self.backupextension) + 1)])
+            return True
+        except Exception as e:
+            stderr.write('Failed to restore backup file "' + filename + '": ' + str(e) + '\n')
+            return False
+ 
+class DeleteBackupImage(ProcessBase):
+    """Processor which deletes backup image."""
+ 
+    def __init__(self):
+        ProcessBase.__init__(self)
+        self.extensions = [self.backupextension]
+ 
+    def processfile(self, filename):
+        """Deletes the specified file."""
+        try:
+            remove(filename)
+            return True
+        except Exception as e:
+            stderr.write('Failed to delete backup file "' + filename + '": ' + str(e) + '\n')
+            return False
+ 
+if __name__ == "__main__":
+    # Argument parsing
+    modecompress = 'compress'
+    moderestorebackup = 'restorebackup'
+    modedeletebackup = 'deletebackup'
+    parser = ArgumentParser(description='Reduce file size of PNG and JPEG images.')
+    parser.add_argument(
+        'path',
+         help='File or directory name')
+    parser.add_argument(
+        '--mode', dest='mode', default=modecompress,
+        choices=[modecompress, moderestorebackup, modedeletebackup],
+        help='Mode to run with (default: ' + modecompress + '). '
+            + modecompress + ': Compress the image(s). '
+            + moderestorebackup + ': Restore the backup images (valid for directory path only). '
+            + modedeletebackup + ': Delete the backup images (valid for directory path only).')
+ 
+    args = parser.parse_args()
+ 
+    # Construct processor requested mode
+    if args.mode == modecompress:
+        processor = CompressImage()
+    elif args.mode == moderestorebackup:
+        processor = RestoreBackupImage()
+    elif args.mode == modedeletebackup:
+        processor = DeleteBackupImage()
+ 
+    # Run according to whether path is a file or a directory
+    if isfile(args.path):
+        if args.mode != modecompress:
+            stderr.write('Mode "' + args.mode + '" supported on directories only.\n')
+            exit(1)
+        processor.processfile(args.path)
+    elif isdir(args.path):
+        filecount = processor.processdir(args.path)
+        print '\nSuccessfully updated file count: ' + str(filecount)
+    else:
+        stderr.write('Invalid path "' + args.path + '"\n')
+        exit(1)
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+usage: compressimages.py [-h] [--mode {compress,restorebackup,deletebackup}]
+                         path
+ 
+Reduce file size of PNG and JPEG images.
+ 
+positional arguments:
+  path                  File or directory name
+ 
+optional arguments:
+  -h, --help            show this help message and exit
+  --mode {compress,restorebackup,deletebackup}
+                        Mode to run with (default: compress). compress:
+                        Compress the image(s). restorebackup: Restore the
+                        backup images (valid for directory path only).
+                        deletebackup: Delete the backup images (valid for
+                        directory path only).
+The script has 3 modes (specified with the –mode option):
+
+compress: attempt to reduce size of supported JPEG and PNG images
+restorebackup: restore the backup of modified image files
+deletebackup: delete the backup copies of modified image files
+The compression is quite conservative as a quick way to reasonably safely reduce the size of a large number of images, but if you are looking to get the best possible reduction in file size, or you have image types not supported by this script, you might want to have a look at Google’s page on image optimization.
+
+Files are renamed to a backup (filename.compressimages-backup) before processing. The restorebackup and deletebackup modes can then be used to either undo the change, or to delete the backup files once you’ve confirmed everything has worked OK.
+
+If the file PIL creates turns out to be larger or the same size as the original, the backup will be restored automatically in compress mode and a message to that effect will be printed. Read-only files will also be warned about and skipped.
+
+In spite of the backup feature built into the script, it would still be advisable to backup your image directory before running it.
+
+If you pass a directory instead of a file name, all .png, .jpg and .jpeg images (regardless of case) will be processed, including in all subdirectories.
+
+You might want to adjust the image compression part of the script to make use of another Python image library or external tool that will get better results for your scenario, and just use the surrounding scaffolding to automate it.
+
+The script can be downloaded from the Softwariness site on Github.
+
+Share on FacebookTweet about this on TwitterShare on Google+Share on LinkedInEmail this to someonePrint this page
+  Python, Web.
+ TCP Socket Options for Crash Recovery – Windows vs POSIX
+Best C++ Libraries to Fill the Gaps in the Standard Library 
+Show Comments 
+Recent Articles
+
+Enabling Crash Dumps
+Addressing the XML/Object Impedance Mismatch – How to Generate Better Code from an XML Schema
+Navigating the Visual C++ Runtime Library Variants
+C++ API Design for SWIG
+Making the Most of .NET XML Serialization
+
+Search
+
+Twitter Github RSS
+Copyright (C) Softwariness.com 2014 - 2015
