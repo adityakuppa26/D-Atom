@@ -37,3 +37,7 @@ elif o==2:
     result=decompress(file_path(p),p)
 else:
     result=compress(filename_path(p),p)
+if o!=-1 || o!=-2:
+    print('The compressed file is stored at ')
+    print(result)
+    
