@@ -13,10 +13,118 @@ def compress(file_name,path='./'):
     pass
   elif file_name.lower().endswith('.mp4'):
     pass
-  elif file_name.lower().endswith('.jpeg'):
-    pass
-  elif file_name.lower().endswith('.png'):
-    pass
+  elif file_name.lower().endswith('.jpeg') or file_name.lower().endswith('.jpg') or file_name.lower().endswith('.png'):
+    from PIL import Image, ImageFile
+from sys import exit, stderr
+from os.path import getsize, isfile, isdir, join
+from os import remove, rename, walk, stat
+from stat import S_IWRITE
+from shutil import move
+from argparse import ArgumentParser
+from abc import ABCMeta, abstractmethod
+ 
+class ProcessBase:
+    """Abstract base class for file processors."""
+    __metaclass__ = ABCMeta
+ 
+    def __init__(self):
+        self.extensions = []
+        self.backupextension = 'compressimages-backup'
+ 
+    @abstractmethod
+    def processfile(self, file_name):
+        """Abstract method which carries out the process on the specified file.
+        Returns True if successful, False otherwise."""
+        pass
+ 
+    def processdir(self, path):
+        """Recursively processes files in the specified directory matching
+        the self.extensions list (case-insensitively)."""
+ 
+        filecount = 0 # Number of files successfully updated
+ 
+        for root, dirs, files in walk(path):
+            for file in files:
+                # Check file extensions against allowed list
+                lowercasefile = file.lower()
+                matches = False
+                for ext in self.extensions:
+                    if lowercasefile.endswith('.' + ext):
+                        matches = True
+                        break
+                if matches:
+                    # File has eligible extension, so process
+                    fullpath = join(root, file)
+                    if self.processfile(fullpath):
+                        filecount = filecount + 1
+        return filecount
+ 
+class CompressImage(ProcessBase):
+    """Processor which attempts to reduce image file size."""
+    def __init__(self):
+        ProcessBase.__init__(self)
+        self.extensions = ['jpg', 'jpeg', 'png']
+ 
+    def processfile(self, file_name):
+        """Renames the specified image to a backup path,
+        and writes out the image again with optimal settings."""
+        try:
+            # Skip read-only files
+            if (not stat(file_name)[0] & S_IWRITE):
+                print 'Ignoring read-only file "' + file_name + '".'
+                return False
+            
+            # Create a backup
+            backupname = file_name + '.' + self.backupextension
+ 
+            if isfile(backupname):
+                print 'Ignoring file "' + file_name + '" for which existing backup file is present.'
+                return False
+ 
+            rename(file_name, backupname)
+        except Exception as e:
+            stderr.write('Skipping file "' + file_name + '" for which backup cannot be made: ' + str(e) + '\n')
+            return False
+ 
+        ok = False
+ 
+        try:
+            # Open the image
+            with open(backupname, 'rb') as file:
+                img = Image.open(file)
+ 
+                # Check that it's a supported format
+                format = str(img.format)
+                if format != 'PNG' and format != 'JPEG':
+                    print 'Ignoring file "' + file_name + '" with unsupported format ' + format
+                    return False
+ 
+                # This line avoids problems that can arise saving larger JPEG files with PIL
+                ImageFile.MAXBLOCK = img.size[0] * img.size[1]
+                
+                # The 'quality' option is ignored for PNG files
+                img.save(file_name, quality=90, optimize=True)
+ 
+            # Check that we've actually made it smaller
+            origsize = getsize(backupname)
+            newsize = getsize(file_name)
+ 
+            if newsize >= origsize:
+                print 'Cannot further compress "' + file_name + '".'
+                return False
+ 
+            # Successful compression
+            ok = True
+        except Exception as e:
+            stderr.write('Failure whilst processing "' + file_name + '": ' + str(e) + '\n')
+        finally:
+            if not ok:
+                try:
+                    move(backupname, file_name)
+                except Exception as e:
+                    stderr.write('ERROR: could not restore backup file for "' + file_name + '": ' + str(e) + '\n')
+ 
+        return ok
   elif file_name.lower().endswith('.zlib'):
     print('This file is already compressed')
     return -2
@@ -30,13 +138,13 @@ def decompress(file_name,path='./'):
         print('This file format is not supported')
         return -1
 o=input('Select the desired option \n 1.Compress a file. \n 2.Decompress a file. \n 3.Check if the file is already compressed. \n ')
-p=raw_input('Please give the file path \n')
+path=raw_input('Please give the file path \n')
 if o==1:
-    result=compress(filename_path(p),p)
+    result=compress(filename_path(path),path)
 elif o==2:
-    result=decompress(file_path(p),p)
+    result=decompress(file_path(path),path)
 else:
-    result=compress(filename_path(p),p)
+    result=compress(filename_path(path),path)
 if o!=-1 or o!=-2:
     print('The compressed file is stored at ')
     print(result)
