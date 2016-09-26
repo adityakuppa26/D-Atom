@@ -1,11 +1,15 @@
 import ntpath,zlib,base64
-var key='#'
+key='#'
+t='.txt'
+j='.jpg'
+jp='.jpeg'
+p='.png'
 def filename_path(path):
     head, tail = ntpath.split(path)
     return tail or ntpath.basename(head)
 def compress(file_name,path='./'):
-  if file_name.lower().endswith('.txt')
-      file=open("file_name.txt","r")
+  if file_name.lower().endswith(t')
+      file=open(file_name,"r")
       text =file.read()
       code =  base64.b64encode(zlib.compress(text,9))
       with open("compressed_file_name.zlib","wb") as myfile:
@@ -16,7 +20,7 @@ def compress(file_name,path='./'):
     pass
   elif file_name.lower().endswith('.mp4'):
     pass
-  elif file_name.lower().endswith('.jpeg') or file_name.lower().endswith('.jpg') or file_name.lower().endswith('.png'):
+  elif file_name.lower().endswith(jp) or file_name.lower().endswith(j) or file_name.lower().endswith(p):
     from PIL import Image, ImageFile
     from sys import exit, stderr
     from os.path import getsize, isfile, isdir, join
@@ -142,7 +146,7 @@ def decompress(file_name,path='./'):
         elif key=='jpeg+png+jpg':
             
             class RestoreBackupImage(ProcessBase):
-    """Processor which restores image from backup."""
+                 """Processor which restores image from backup."""
  
                 def __init__(self):
                     ProcessBase.__init__(self)
