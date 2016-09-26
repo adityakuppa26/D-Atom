@@ -4,6 +4,9 @@ t='.txt'
 j='.jpg'
 jp='.jpeg'
 p='.png'
+m='.mp3'
+mp='.mp4'
+z='.zlib'
 def filename_path(path):
     head, tail = ntpath.split(path)
     return tail or ntpath.basename(head)
@@ -16,9 +19,9 @@ def compress(file_name,path='./'):
             myfile.write(code)
             key='text'
             return './' + 'compressed_file_name.zlib'
-    elif file_name.lower().endswith(m='.mp3'):
+    elif file_name.lower().endswith(m):
         pass
-    elif file_name.lower().endswith(mp='.mp4'):
+    elif file_name.lower().endswith(mp):
         pass
     elif file_name.lower().endswith(jp) or file_name.lower().endswith(j) or file_name.lower().endswith(p):
         from PIL import Image, ImageFile
@@ -132,7 +135,7 @@ def compress(file_name,path='./'):
 
                 key='jpeg+png+jpg' 
                 return ok
-    elif file_name.lower().endswith('.zlib'):
+    elif file_name.lower().endswith(z):
         print('This file is already compressed')
         return -2
     else :
@@ -148,7 +151,7 @@ def decompress(file_name,path='./'):
     from shutil import move
     from argparse import ArgumentParser
     from abc import ABCMeta, abstractmethod  
-    if file_name.lower().endswith('.zlib'):
+    if file_name.lower().endswith(z):
         if key=='text':
             pass
         elif key=='jpeg+png+jpg':
