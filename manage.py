@@ -4,9 +4,6 @@ t='.txt'
 j='.jpg'
 jp='.jpeg'
 p='.png'
-m='.mp3'
-mp='.mp4'
-z='.zlib'
 def filename_path(path):
     head, tail = ntpath.split(path)
     return tail or ntpath.basename(head)
@@ -19,9 +16,9 @@ def compress(file_name,path='./'):
             myfile.write(code)
             key='text'
             return './' + 'compressed_file_name.zlib'
-    elif file_name.lower().endswith(m):
+    elif file_name.lower().endswith(m='.mp3'):
         pass
-    elif file_name.lower().endswith(mp):
+    elif file_name.lower().endswith(mp='.mp4'):
         pass
     elif file_name.lower().endswith(jp) or file_name.lower().endswith(j) or file_name.lower().endswith(p):
         from PIL import Image, ImageFile
@@ -80,14 +77,14 @@ def compress(file_name,path='./'):
                 try:
                     # Skip read-only files
                     if (not stat(file_name)[0] & S_IWRITE):
-                        print 'Ignoring read-only file "' + file_name + '".'
+                        print ('Ignoring read-only file "' + file_name + '.')
                         return False
 
                     # Create a backup
                     backupname = file_name + '.' + self.backupextension
 
                     if isfile(backupname):
-                        print 'Ignoring file "' + file_name + '" for which existing backup file is present.'
+                        print ('Ignoring file "' + file_name + '" for which existing backup file is present.')
                         return False
 
                     rename(file_name, backupname)
@@ -105,7 +102,7 @@ def compress(file_name,path='./'):
                         # Check that it's a supported format
                         format = str(img.format)
                         if format != 'PNG' and format != 'JPEG':
-                            print 'Ignoring file "' + file_name + '" with unsupported format ' + format
+                            print ('Ignoring file "' + file_name + '" with unsupported format ' + format)
                             return False
 
                         # This line avoids problems that can arise saving larger JPEG files with PIL
@@ -119,7 +116,7 @@ def compress(file_name,path='./'):
                     newsize = getsize(file_name)
 
                     if newsize >= origsize:
-                        print 'Cannot further compress "' + file_name + '".'
+                        print ('Cannot further compress "' + file_name + '.')
                         return False
 
                     # Successful compression
@@ -135,7 +132,7 @@ def compress(file_name,path='./'):
 
                 key='jpeg+png+jpg' 
                 return ok
-    elif file_name.lower().endswith(z):
+    elif file_name.lower().endswith('.zlib'):
         print('This file is already compressed')
         return -2
     else :
@@ -151,7 +148,7 @@ def decompress(file_name,path='./'):
     from shutil import move
     from argparse import ArgumentParser
     from abc import ABCMeta, abstractmethod  
-    if file_name.lower().endswith(z):
+    if file_name.lower().endswith('.zlib'):
         if key=='text':
             pass
         elif key=='jpeg+png+jpg':
