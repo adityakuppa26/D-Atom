@@ -10,6 +10,7 @@ def filename_path(path):
     head, tail = ntpath.split(path)
     return tail or ntpath.basename(head)
 def compress(file_name,path='./'):
+     backupname = file_name + '.' + self.backupextension
     if file_name.lower().endswith(t):
         file=open(file_name,"r")
         text =file.read()
@@ -85,10 +86,6 @@ def compress(file_name,path='./'):
                     if (not stat(file_name)[0] & S_IWRITE):
                         print ('Ignoring read-only file "' + file_name + '.')
                         return False
-
-                    # Create a backup
-                    backupname = file_name + '.' + self.backupextension
-
                     if isfile(backupname):
                         print ('Ignoring file "' + file_name + '" for which existing backup file is present.')
                         return False
@@ -116,8 +113,6 @@ def compress(file_name,path='./'):
 
                         # The 'quality' option is ignored for PNG files
                         img.save(file_name, quality=90, optimize=True)
-    return backupname
-
                     # Check that we've actually made it smaller
                     origsize = getsize(backupname)
                     newsize = getsize(file_name)
@@ -128,7 +123,6 @@ def compress(file_name,path='./'):
 
                     # Successful compression
                     ok = True
-                    return backupname
                 except Exception as e:
                     stderr.write('Failure whilst processing "' + file_name + '": ' + str(e) + '\n')
                 finally:
@@ -146,6 +140,7 @@ def compress(file_name,path='./'):
     else :
         print('This file format is not supported')
         return -1
+    return backupname
 #decompression    
 def decompress(file_name,path='./'):
     from PIL import Image, ImageFile
