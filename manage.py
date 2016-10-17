@@ -127,6 +127,11 @@ def compress(file_name,path='./'):
 
                     # Successful compression
                     ok = True
+                    cf.open("comp.zlib",w)
+                    cont=file_name.read()
+                    cf.write(cont)
+                    cf.close()
+                    return comp.zlib
                 except Exception as e:
                     stderr.write('Failure whilst processing "' + file_name + '": ' + str(e) + '\n')
                 finally:
