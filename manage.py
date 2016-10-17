@@ -43,8 +43,10 @@ def compress(file_name,path='./'):
             def processfile(self, file_name):
                 """Abstract method which carries out the process on the specified file.
                 Returns True if successful, False otherwise."""
-                pass
-
+                if(file_name==NONE):
+                    return false
+                else:
+                    return true
             def processdir(self, path):
                 """Recursively processes files in the specified directory matching
                 the self.extensions list (case-insensitively)."""
