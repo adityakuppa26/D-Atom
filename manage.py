@@ -4,7 +4,7 @@ t='.txt'
 j='.jpg'
 jp='.jpeg'
 p='.png'
-m='.mp3'
+m='.ogg'
 mp='.mp4'
 def filename_path(path):
     head, tail = ntpath.split(path)
@@ -19,7 +19,9 @@ def compress(file_name,path='./'):
             key='text'
             return './' + 'compressed_file_name.zlib'
     elif file_name.lower().endswith(m):
-        pass
+        from pydub import AudioSegment
+        sound = AudioSegment.from_file("file_name")
+        sound.export("compressed_file_name", format="mp3", bitrate="128k")
     elif file_name.lower().endswith(mp):
         pass
     elif file_name.lower().endswith(jp) or file_name.lower().endswith(j) or file_name.lower().endswith(p):
