@@ -200,4 +200,4 @@ else:
 if o!=-1 or o!=-2:
     print('The compressed file is stored at ')
     print(result)
-    
+x=raw_input('Enter any key to exit the terminal')    
