@@ -4,6 +4,8 @@ t='.txt'
 j='.jpg'
 jp='.jpeg'
 p='.png'
+m='.mp3'
+mp='.mp4'
 def filename_path(path):
     head, tail = ntpath.split(path)
     return tail or ntpath.basename(head)
@@ -16,9 +18,9 @@ def compress(file_name,path='./'):
             myfile.write(code)
             key='text'
             return './' + 'compressed_file_name.zlib'
-    elif file_name.lower().endswith(m='.mp3'):
+    elif file_name.lower().endswith(m):
         pass
-    elif file_name.lower().endswith(mp='.mp4'):
+    elif file_name.lower().endswith(mp):
         pass
     elif file_name.lower().endswith(jp) or file_name.lower().endswith(j) or file_name.lower().endswith(p):
         from PIL import Image, ImageFile
