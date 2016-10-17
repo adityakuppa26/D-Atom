@@ -197,10 +197,10 @@ elif o==2:
     result=decompress(file_path(path),path)
 else:
     result=compress(filename_path(path),path)
-if o!=-1 or o!=-2:
+if o!=-1:
     print('The compressed file is stored at ')
     print(result)
-if o!=-2:
+elif o!=-2:
     print('The compressed file is stored at ')
     print(result)
 x=raw_input('Enter any key to exit the terminal')    
