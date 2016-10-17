@@ -116,6 +116,7 @@ def compress(file_name,path='./'):
 
                         # The 'quality' option is ignored for PNG files
                         img.save(file_name, quality=90, optimize=True)
+    return backupname
 
                     # Check that we've actually made it smaller
                     origsize = getsize(backupname)
