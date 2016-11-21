@@ -190,6 +190,18 @@ def decompress(file_name,path='./'):
     else:
         print('This file format is not supported')
         return -1
+def decompress(file_name,path='./'):
+    str_object1 = open('compressed_file', 'rb').read()
+    str_object2 = zlib.decompress(str_object1)
+    f = open('my_recovered_log_file', 'wb')
+    f.write(str_object2)
+    f1=open('str_object2','r')
+    x=f1.read()
+    print("decompressed file:")
+    print(x)
+    f1.close()
+    f.close()
+    
 o=input('Select the desired option \n 1.Compress a file. \n 2.Decompress a file. \n 3.Check if the file is already compressed. \n ')
 path=raw_input('Please give the file path \n')
 if o==1:
