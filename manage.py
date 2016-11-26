@@ -141,7 +141,7 @@ def compress(file_name,path='./'):
         print('This file format is not supported')
         return -1
     return backupname
-#decompression    
+"""#decompression    
 def decompress(file_name,path='./'):
     from PIL import Image, ImageFile
     from sys import exit, stderr
@@ -190,6 +190,7 @@ def decompress(file_name,path='./'):
     else:
         print('This file format is not supported')
         return -1
+"""        
 def decompress(file_name,path='./'):
     str_object1 = open('compressed_file', 'rb').read()
     str_object2 = zlib.decompress(str_object1)
