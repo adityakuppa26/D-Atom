@@ -192,7 +192,7 @@ def decompress(file_name,path='./'):
         return -1
 """        
 def decompress(file_name,path='./'):
-    str_object1 = open('compressed_file', 'rb').read()
+    str_object1 = open('compressed_file_name.zlib', 'rb').read()
     str_object2 = zlib.decompress(str_object1)
     f = open('my_recovered_log_file', 'wb')
     f.write(str_object2)
@@ -208,7 +208,7 @@ path=raw_input('Please give the file path \n')
 if o==1:
     result=compress(filename_path(path),path)
 elif o==2:
-    result=decompress(file_path(path),path)
+    result=decompress(filename_path(path),path)
 else:
     result=compress(filename_path(path),path)
 if o!=-1:
